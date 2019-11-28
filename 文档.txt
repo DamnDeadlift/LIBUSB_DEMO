@@ -1,0 +1,27 @@
+1.生成接口文档：
+安装完之后，进入libusb-1.0.22目录，打开doc文件夹，编辑doxygen.cfg文件，将PROJECT_LOGO = libusb.png修改为PROJECT_LOGO = ，保存退出后，在doc目录下执行:doxygen doxygen.cfg 命令（可能需要先安装doxygen），在doc目录下就会生成html文件夹，进入html目录，打开files.html，在main page下有API文档，打开即可
+
+
+Device >>Configuration >> Interface >> Endpoint
+参考资料：https://www.crifan.com/files/doc/docbook/usb_basic/release/html/usb_basic.html#tbl.usb_class
+
+ USB Class表
+00h 	Device 	Use class information in the Interface Descriptors
+01h 	Interface 	Audio
+02h 	Both 	Communications and CDC Control
+03h 	Interface 	HID (Human Interface Device)
+05h 	Interface 	Physical
+06h 	Interface 	Image
+07h 	Interface 	Printer
+08h 	Interface 	Mass Storage
+09h 	Device 	Hub
+0Ah 	Interface 	CDC-Data
+0Bh 	Interface 	Smart Card
+0Dh 	Interface 	Content Security
+0Eh 	Interface 	Video
+0Fh 	Interface 	Personal Healthcare
+DCh 	Both 	Diagnostic Device
+E0h 	Interface 	Wireless Controller
+EFh 	Both 	Miscellaneous
+FEh 	Interface 	Application Specific
+FFh 	Both 	Vendor Specific
