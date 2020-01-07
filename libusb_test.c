@@ -1,8 +1,9 @@
 #include <stdio.h>
+#include<stdlib.h>
 #include "libusb.h"
 
-#define VENDOR_ID 0x12d1
-#define PRODUCT_ID 0x107e
+#define VENDOR_ID 0x0483
+#define PRODUCT_ID 0x7540
 
 // typedef struct Usb_Device
 // {
@@ -23,6 +24,14 @@ int main()
     uint8_t endpoint_attributes = 0, endpoint_address = 0;
     uint8_t interface_number = 0;
     struct libusb_device_handle *device_handle;
+
+    //0x1b,0x6d ： 半切；
+    // 0x10,0x04 n ：实时状态传送
+    // 0x1b, 0x69 ：全切
+    uint8_t send_buffer[32] = {0x10,0x04,1};  
+       
+    
+    int actual_length = 0;
 
     
     //struct libusb_device_descriptor *dev;
@@ -100,8 +109,39 @@ int main()
     }
 
     //must claim the interface you wish to use before you can perform I/O on any of its endpoints.
-    ret = libusb_claim_interface(device_handle, 1);
-    printf("claim ret = %d\n",ret);
+    ret = libusb_claim_interface(device_handle, 0);
+    if(ret < 0)
+    {
+        printf("claim ret = %d\n",ret);
+        ret = libusb_detach_kernel_driver(device_handle, interface_number);
+        printf("detach kernel driver ret = %d\n", ret);
+        if(ret < 0 )
+        {
+            return -1;
+        }
+
+        ret = libusb_claim_interface(device_handle, 0);
+        if(ret < 0)
+        {
+            printf("after detach kernel driver, claim interface failed again\n");
+            return -1;
+        }
+
+    }
+
+    ret = libusb_bulk_transfer(device_handle, 3, send_buffer, 32, &actual_length, 500);
+    printf("transfer ret = %d\n",ret);
+
+    memset(send_buffer,0,32);
+    
+    ret = libusb_bulk_transfer(device_handle, 0x81, &send_buffer, 32, &actual_length,500);
+    printf("receive ret = %d\n",ret);
+
+    for(i  = 0; i < actual_length; i++)
+    {
+        printf("%d",send_buffer[i]);
+    }
+    printf("\n");
 
     //
 
