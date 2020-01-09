@@ -11,7 +11,11 @@
 
 // uint8_t baud_dec_buffer[4] = {9600, 19200, 38400, 115200};
 
-
+uint8_t endpoint_out_address = 0;
+uint8_t endpoint_in_address = 0;
+libusb_device_handle *device_handle = NULL;
+uint8_t binterface_number = 0;
+libusb_device **list;      // device list
 
 int OpenPrinter(int baud)
 {

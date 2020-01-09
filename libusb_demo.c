@@ -3,14 +3,12 @@
 // #include <stdlib.h>
 int main()
 {
-    int ret = 1;
-    int i = 0;
+    int ret = -1;
+
     //0x1b,0x6d ： 半切；
     // 0x10,0x04 n ：实时状态传送
     // 0x1b, 0x69 ：全切
     uint8_t buf[4] = {0x1b, 0x6d};
-    
-    // printf("hello\n");
     
     ret = OpenPrinter();
     if(ret != 0)
@@ -35,7 +33,7 @@ int main()
     }
     printf("read %d data \n",ret);
 
-    for (i = 0; i < ret; i++)
+    for (int i = 0; i < ret; i++)
     {
         printf("%d", buf[i]);
     }
