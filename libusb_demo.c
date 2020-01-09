@@ -8,7 +8,7 @@ int main()
     //0x1b,0x6d ： 半切；
     // 0x10,0x04 n ：实时状态传送
     // 0x1b, 0x69 ：全切
-    uint8_t buf[4] = {0x10, 0x04, 1};
+    uint8_t buf[4] = {0x1b, 0x6d};
     
     // printf("hello\n");
     

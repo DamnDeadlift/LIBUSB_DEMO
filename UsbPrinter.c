@@ -11,6 +11,8 @@
 
 // uint8_t baud_dec_buffer[4] = {9600, 19200, 38400, 115200};
 
+
+
 int OpenPrinter(int baud)
 {
     int ret = 0;
@@ -140,6 +142,12 @@ int OpenPrinter(int baud)
 int WriteData(uint8_t *data, int length)
 {
     int ret, actual_length;
+    
+    if(device_handle == NULL)
+    {
+        printf("NOT OPEN DEVICE\n");
+        return -99;
+    }
 
     ret = libusb_bulk_transfer(device_handle, endpoint_out_address, data, length, &actual_length, 1000);
     if(ret != 0)
@@ -154,6 +162,12 @@ int ReadData(uint8_t *data, int length)
 {
     int ret, actual_length;
 
+    if(device_handle == NULL)
+    {
+        printf("NOT OPEN DEVICE\n");
+        return -99;
+    }
+    
     //clear data
     memset(data, 0, length);
 
