@@ -34,9 +34,9 @@ int main()
                                       {0x1d, 0x28, 0x45, 0x08, 0x00, 0x0b, 0x01, 0x22, 0x33, 0x38, 0x34, 0x30, 0x30, 0x22},
                                       {0x1d, 0x28, 0x45, 0x08, 0x00, 0x0b, 0x01, 0x22, 0x31, 0x31, 0x35, 0x32, 0x30, 0x30, 0x22}}; //baud:9600
 
-    uint8_t baud_dec_buffer[4] = {9600, 19200, 38400, 115200};
+    uint32_t baud_dec_buffer[4] = {9600, 19200, 38400, 115200};
     int actual_length = 0;
-
+    uint8_t baud_buffer[32] = {0x1d, 0x28, 0x45, 0x08, 0x00, 0x0b, 0x01, 0x22, 0x39, 0x36, 0x30, 0x30, 0x22};
     //struct libusb_device_descriptor *dev;
 
     int i = 0, j = 0, k = 0, l = 0;
@@ -62,7 +62,7 @@ int main()
             printf("get device descriptor failed\n");
             return 0;
         }
-        printf("idVendor = %#.4x, idProduct = %#.4x, bNumConfigurations = %d \n", desc.idVendor, desc.idProduct, desc.bNumConfigurations);
+        printf("class = %d, idVendor = %#.4x, idProduct = %#.4x, bNumConfigurations = %d, \n",desc.bDeviceClass, desc.idVendor, desc.idProduct, desc.bNumConfigurations);
 
         //find specified usb device
         if (desc.idVendor == VENDOR_ID && desc.idProduct == PRODUCT_ID)
@@ -97,6 +97,7 @@ int main()
                 printf("endpoint number = %d\n", endpoint_number);
 
                 interface_number = config->interface[j].altsetting[k].bInterfaceNumber;
+                printf("altsetting[k].bInterfaceNumber = %d\n", interface_number);
 
                 //get device endpoint
                 for (l = 0; l < endpoint_number; l++)
@@ -116,6 +117,8 @@ int main()
         printf("open device failed\n");
         return 0;
     }
+
+    
 
     //must claim the interface you wish to use before you can perform I/O on any of its endpoints.
     ret = libusb_claim_interface(device_handle, 0);
@@ -137,7 +140,7 @@ int main()
         }
     }
 
-    ret = libusb_bulk_transfer(device_handle, 3, baud_buffer, 32, &actual_length, 200);
+    ret = libusb_bulk_transfer(device_handle, 3, baud_buffer, 32, &actual_length, 500);
     printf("transfer ret = %d, actual_length = %d\n", ret, actual_length);
 
     ret = libusb_bulk_transfer(device_handle, 3, send_buffer, 32, &actual_length, 200);
