@@ -93,6 +93,7 @@ int OpenPrinter(int baud)
                     endpoint_address = config->interface[j].altsetting[k].endpoint[l].bEndpointAddress;
                     printf("endpoint %d : \n", l);
                     printf("bmAttributes = %d, bEndpointAddress = %d\n", endpoint_attributes, endpoint_address);
+                    printf("\n");
                     if(endpoint_address < 127)
                     {
                         endpoint_out_address = endpoint_address;
@@ -167,14 +168,14 @@ int ReadData(uint8_t *data, int length)
         printf("NOT OPEN DEVICE\n");
         return -99;
     }
-    
+
     //clear data
     memset(data, 0, length);
 
     ret = libusb_bulk_transfer(device_handle, endpoint_in_address, data, length, &actual_length, 1000);
     if(ret != 0)
     {
-        printf("Write Data failed, ret = %d\n",ret);
+        printf("Read Data failed, ret = %d\n",ret);
         return ret;
     }
     return actual_length;
