@@ -17,7 +17,7 @@ libusb_device_handle *device_handle = NULL;
 uint8_t binterface_number = 0;
 libusb_device **list;      // device list
 
-int OpenPrinter(int baud)
+int OpenPrinter()
 {
     int ret = 0;
     ssize_t device_number = 0; // the number of usb device
@@ -35,7 +35,7 @@ int OpenPrinter(int baud)
     ret = libusb_init(NULL);
     if(ret != 0)
     {
-        printf("init failed");
+        debug("init failed");
         return ret;
     }
 
@@ -47,7 +47,7 @@ int OpenPrinter(int baud)
         ret = libusb_get_device_descriptor(list[i], &desc);
         if (ret != 0)
         {
-            printf("get device descriptor failed\n");
+            debug("get device descriptor failed\n");
             return ret;
         }
         
@@ -60,7 +60,7 @@ int OpenPrinter(int baud)
 
         if(i == device_number - 1)
         {
-            printf("specified vendor id or product id not found\n");
+            debug("specified vendor id or product id not found\n");
             return -1;
         }
        
@@ -72,10 +72,10 @@ int OpenPrinter(int baud)
         ret = libusb_get_config_descriptor(printer, i, &config);
         if (ret != 0)
         {
-            printf("get config descriptor failed\n");
+            debug("get config descriptor failed\n");
             return ret;
         }
-        printf("number of interface: %d\n", config->bNumInterfaces);
+        debug("number of interface: %d\n", config->bNumInterfaces);
 
         for (j = 0; j < config->bNumInterfaces; j++)
         {
@@ -83,10 +83,10 @@ int OpenPrinter(int baud)
             {
                 // get device class
                 device_class = config->interface[j].altsetting[k].bInterfaceClass;
-                printf("device class = %d\n", device_class);
+                debug("device class = %d\n", device_class);
 
                 endpoint_number = config->interface[j].altsetting[k].bNumEndpoints;
-                printf("endpoint number = %d\n", endpoint_number);
+                debug("endpoint number = %d\n", endpoint_number);
 
                 binterface_number = config->interface[j].altsetting[k].bInterfaceNumber;
 
@@ -95,9 +95,9 @@ int OpenPrinter(int baud)
                 {
                     endpoint_attributes = config->interface[j].altsetting[k].endpoint[l].bmAttributes;
                     endpoint_address = config->interface[j].altsetting[k].endpoint[l].bEndpointAddress;
-                    printf("endpoint %d : \n", l);
-                    printf("bmAttributes = %d, bEndpointAddress = %d\n", endpoint_attributes, endpoint_address);
-                    printf("\n");
+                    debug("endpoint %d : \n", l);
+                    debug("bmAttributes = %d, bEndpointAddress = %d\n", endpoint_attributes, endpoint_address);
+                    debug("\n");
                     if(endpoint_address < 127)
                     {
                         endpoint_out_address = endpoint_address;
@@ -116,7 +116,7 @@ int OpenPrinter(int baud)
     ret = libusb_open(printer, &device_handle);
     if(ret != 0)
     {
-        printf("open device failed\n");
+        debug("open device failed\n");
         return ret;
     }
 
@@ -124,9 +124,9 @@ int OpenPrinter(int baud)
     ret = libusb_claim_interface(device_handle, binterface_number);
     if (ret != 0)
     {
-        printf("claim ret = %d\n", ret);
+        debug("claim ret = %d\n", ret);
         ret = libusb_detach_kernel_driver(device_handle, binterface_number);
-        printf("detach kernel driver ret = %d\n", ret);
+        debug("detach kernel driver ret = %d\n", ret);
         if (ret != 0)
         {
             return ret;
@@ -135,7 +135,7 @@ int OpenPrinter(int baud)
         ret = libusb_claim_interface(device_handle, 0);
         if (ret != 0)
         {
-            printf("after detach kernel driver, claim interface failed again\n");
+            debug("after detach kernel driver, claim interface failed again\n");
             return ret;
         }
     }
@@ -150,14 +150,14 @@ int WriteData(uint8_t *data, int length)
     
     if(device_handle == NULL)
     {
-        printf("NOT OPEN DEVICE\n");
+        debug("NOT OPEN DEVICE\n");
         return -99;
     }
 
     ret = libusb_bulk_transfer(device_handle, endpoint_out_address, data, length, &actual_length, 1000);
     if(ret != 0)
     {
-        printf("Write Data failed, ret = %d\n",ret);
+        debug("Write Data failed, ret = %d\n",ret);
         return ret;
     }
     return actual_length;
@@ -169,7 +169,7 @@ int ReadData(uint8_t *data, int length)
 
     if(device_handle == NULL)
     {
-        printf("NOT OPEN DEVICE\n");
+        debug("NOT OPEN DEVICE\n");
         return -99;
     }
 
@@ -179,7 +179,7 @@ int ReadData(uint8_t *data, int length)
     ret = libusb_bulk_transfer(device_handle, endpoint_in_address, data, length, &actual_length, 1000);
     if(ret != 0)
     {
-        printf("Read Data failed, ret = %d\n",ret);
+        debug("Read Data failed, ret = %d\n",ret);
         return ret;
     }
     return actual_length;
@@ -196,10 +196,13 @@ int ClosePrinter()
     ret = libusb_release_interface(device_handle, binterface_number);
     if (ret != 0)
     {
-        printf("release interface failed\n");    
+        debug("release interface failed\n");    
     }
+
+    libusb_exit(NULL);
+
     return ret;
     
-    libusb_exit(NULL);
+    
 
 }

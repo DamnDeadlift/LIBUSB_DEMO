@@ -13,5 +13,5 @@ UsbPrinter.o: UsbPrinter.c UsbPrinter.h
 
 clean:
 	@rm -rf *.o \
-	@rm -rf $(TARGET)
+	@rm -rf $(TARGET) 
 	@echo "清理完毕！"
