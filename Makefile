@@ -9,7 +9,7 @@ $(TARGET): libusb_demo.c UsbPrinter.o
 
 
 UsbPrinter.o: UsbPrinter.c UsbPrinter.h
-	@$(CC) -c $(CFLAGS) $(LIBS) UsbPrinter.c 
+	@$(CC) -c $(CFLAGS) UsbPrinter.c 
 
 clean:
 	@rm -rf *.o \

@@ -35,7 +35,7 @@ int OpenPrinter()
     ret = libusb_init(NULL);
     if(ret != 0)
     {
-        debug("init failed");
+        debug_print("init failed");
         return ret;
     }
 
@@ -47,7 +47,7 @@ int OpenPrinter()
         ret = libusb_get_device_descriptor(list[i], &desc);
         if (ret != 0)
         {
-            debug("get device descriptor failed\n");
+            debug_print("get device descriptor failed\n");
             return ret;
         }
         
@@ -60,7 +60,7 @@ int OpenPrinter()
 
         if(i == device_number - 1)
         {
-            debug("specified vendor id or product id not found\n");
+            debug_print("specified vendor id or product id not found\n");
             return -1;
         }
        
@@ -72,10 +72,10 @@ int OpenPrinter()
         ret = libusb_get_config_descriptor(printer, i, &config);
         if (ret != 0)
         {
-            debug("get config descriptor failed\n");
+            debug_print("get config descriptor failed\n");
             return ret;
         }
-        debug("number of interface: %d\n", config->bNumInterfaces);
+        debug_print("number of interface: %d\n", config->bNumInterfaces);
 
         for (j = 0; j < config->bNumInterfaces; j++)
         {
@@ -83,10 +83,10 @@ int OpenPrinter()
             {
                 // get device class
                 device_class = config->interface[j].altsetting[k].bInterfaceClass;
-                debug("device class = %d\n", device_class);
+                debug_print("device class = %d\n", device_class);
 
                 endpoint_number = config->interface[j].altsetting[k].bNumEndpoints;
-                debug("endpoint number = %d\n", endpoint_number);
+                debug_print("endpoint number = %d\n", endpoint_number);
 
                 binterface_number = config->interface[j].altsetting[k].bInterfaceNumber;
 
@@ -95,9 +95,9 @@ int OpenPrinter()
                 {
                     endpoint_attributes = config->interface[j].altsetting[k].endpoint[l].bmAttributes;
                     endpoint_address = config->interface[j].altsetting[k].endpoint[l].bEndpointAddress;
-                    debug("endpoint %d : \n", l);
-                    debug("bmAttributes = %d, bEndpointAddress = %d\n", endpoint_attributes, endpoint_address);
-                    debug("\n");
+                    debug_print("endpoint %d : \n", l);
+                    debug_print("bmAttributes = %d, bEndpointAddress = %d\n", endpoint_attributes, endpoint_address);
+                    printf("\n");
                     if(endpoint_address < 127)
                     {
                         endpoint_out_address = endpoint_address;
@@ -112,11 +112,15 @@ int OpenPrinter()
         }
     }
 
+    if(device_handle != NULL)
+    {
+        libusb_close(device_handle);
+    }
     // open device
     ret = libusb_open(printer, &device_handle);
     if(ret != 0)
     {
-        debug("open device failed\n");
+        debug_print("open device failed\n");
         return ret;
     }
 
@@ -124,9 +128,9 @@ int OpenPrinter()
     ret = libusb_claim_interface(device_handle, binterface_number);
     if (ret != 0)
     {
-        debug("claim ret = %d\n", ret);
+        debug_print("claim ret = %d\n", ret);
         ret = libusb_detach_kernel_driver(device_handle, binterface_number);
-        debug("detach kernel driver ret = %d\n", ret);
+        debug_print("detach kernel driver ret = %d\n", ret);
         if (ret != 0)
         {
             return ret;
@@ -135,7 +139,7 @@ int OpenPrinter()
         ret = libusb_claim_interface(device_handle, 0);
         if (ret != 0)
         {
-            debug("after detach kernel driver, claim interface failed again\n");
+            debug_print("after detach kernel driver, claim interface failed again\n");
             return ret;
         }
     }
@@ -146,18 +150,18 @@ int OpenPrinter()
 
 int WriteData(uint8_t *data, int length)
 {
-    int ret, actual_length;
+    int ret = -99, actual_length = 0;
     
     if(device_handle == NULL)
     {
-        debug("NOT OPEN DEVICE\n");
+        debug_print("NOT OPEN DEVICE\n");
         return -99;
     }
 
     ret = libusb_bulk_transfer(device_handle, endpoint_out_address, data, length, &actual_length, 1000);
     if(ret != 0)
     {
-        debug("Write Data failed, ret = %d\n",ret);
+        debug_print("Write Data failed, ret = %d\n",ret);
         return ret;
     }
     return actual_length;
@@ -165,11 +169,11 @@ int WriteData(uint8_t *data, int length)
 
 int ReadData(uint8_t *data, int length)
 {
-    int ret, actual_length;
+    int ret = -99, actual_length = 0;
 
     if(device_handle == NULL)
     {
-        debug("NOT OPEN DEVICE\n");
+        debug_print("NOT OPEN DEVICE\n");
         return -99;
     }
 
@@ -179,7 +183,7 @@ int ReadData(uint8_t *data, int length)
     ret = libusb_bulk_transfer(device_handle, endpoint_in_address, data, length, &actual_length, 1000);
     if(ret != 0)
     {
-        debug("Read Data failed, ret = %d\n",ret);
+        debug_print("Read Data failed, ret = %d\n",ret);
         return ret;
     }
     return actual_length;
@@ -187,22 +191,28 @@ int ReadData(uint8_t *data, int length)
 
 int ClosePrinter()
 {
-    int ret;
+    int ret = -99;
+    if(device_handle == NULL)
+    {
+        debug_print("close failed, no device handle\n");
+        return ret;
+    }
+
+    ret = libusb_release_interface(device_handle, binterface_number);
+    if (ret != 0)
+    {
+        debug_print("release interface failed,ret = %d\n",ret);    
+    }
 
     libusb_free_device_list(list, 1);
 
     libusb_close(device_handle);
 
-    ret = libusb_release_interface(device_handle, binterface_number);
-    if (ret != 0)
-    {
-        debug("release interface failed\n");    
-    }
-
     libusb_exit(NULL);
 
-    return ret;
+    device_handle = NULL;
     
+    return ret;
     
 
 }
