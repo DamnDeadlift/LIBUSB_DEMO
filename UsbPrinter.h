@@ -21,6 +21,7 @@ extern "C" {
 #define debug_print(...)
 #endif
 
+//the specified vendor id and product id
 #define VENDOR_ID 0x0483
 #define PRODUCT_ID 0x7540
 
